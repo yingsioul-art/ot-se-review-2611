@@ -154,7 +154,7 @@ button.sec{background:#fff;color:var(--accent)}
 </main>
 <div class="bar"><button id="b_send">送出</button><button class="sec" id="b_pdf">印成PDF</button><span id="msg"></span></div>
 <script>
-const ENDPOINT = "";
+const ENDPOINT = "https://script.google.com/macros/s/AKfycbwH8GJ1Godo4LV4IczmkJeLpYRSidoB9P4RA56d79jHK6_puFMMwaRYZs61-IBd_jM/exec";
 const KEY = "review2611";
 const form = document.querySelector("main");
 function store(get){ try{ return get(); }catch(e){ return null; } }
@@ -205,10 +205,12 @@ document.getElementById("b_send").onclick = async () => {
   const overall = {};
   ["o_ot1","o_ot2","o_ot3","o_se1","o_se2","o_se3"].forEach(k => overall[k] = document.getElementById(k).value);
   const body = {sid:Date.now().toString(36)+Math.random().toString(36).slice(2,6),name,affil:document.getElementById("f_affil").value,date:document.getElementById("f_date").value,overall,items};
-  msg.textContent = "送出中…";
-  try{
-    await fetch(ENDPOINT,{method:"POST",mode:"no-cors",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify(body)});
-    msg.textContent = "已送出，謝謝您。建議再按「印成PDF」留存，若需修改可重新送出。";
-  }catch(e){ msg.textContent = "送出失敗，請按「印成PDF」寄回給計畫主持人"; }
+  // 要登入 Google，背景 fetch 帶不到登入狀態，改用新分頁送出，由後台回覆是否收到
+  const f = document.createElement("form");
+  f.method = "POST"; f.action = ENDPOINT; f.target = "_blank"; f.acceptCharset = "UTF-8";
+  const h = document.createElement("input");
+  h.type = "hidden"; h.name = "payload"; h.value = JSON.stringify(body);
+  f.appendChild(h); document.body.appendChild(f); f.submit(); f.remove();
+  msg.textContent = "已開新分頁送出。看到「已收到」才算完成;若先要求登入，登入後請回到這頁再按一次送出。";
 };
 </script></body></html>
